@@ -18,21 +18,21 @@ from rpi_ws281x import *
 from neopixel import Adafruit_NeoPixel,Color
 
 # LED strip configuration:
-LED_COUNT      = 500 # Number of LED pixels.
 LED_PIN        = 18      # GPIO pin connected to the pixels (18 uses PWM!).
-LIGHT_PIN      = 2
-LIGHT_BRIGHTNESS=170
-DARK_BRIGHTNESS=40
-MOTION_PIN     = 17
-MOTION2_PIN     = 27
-#LED_PIN        = 10      # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
+LIGHT_PIN      = 2       # GPIO pin light sensor is connected to since we do not use an analog to digital converter we can only get lights on or lights off
+LIGHT_BRIGHTNESS=170     # brightness on strip when light is detected
+DARK_BRIGHTNESS=40       # brightness on strip when lights are off
+MOTION_PIN     = 17      # pin the first motion sensor connected to (depending on which sensor is hit the strips starts the aniimation form top or from bottom)
+MOTION2_PIN     = 27     # pin the second motion sensor is connected to
 LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
 LED_DMA        = 10      # DMA channel to use for generating signal (try 10)
-LED_BRIGHTNESS = 15 # Set to 0 for darkest and 255 for brightest
+LED_BRIGHTNESS = DARK_BRIGHTNESS # Set to 0 for darkest and 255 for brightest, default brightness, will be overwritten by light or dark brightness
 LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
-CUSTOM_STEP_LENGTH=[60, 64, 84, 65, 58 , 58, 58, 58, 58, 58, 58, 58, 58, 58, 55, 55, 55];
-#CUSTOM_STEP_LENGTH=[2, 4, 3, 5 , 1, 15]
+COLOR=Color(0,0,255) # R G B values for solid color (here it is actually GRB)
+CUSTOM_STEP_LENGTH=[60, 64, 84, 65, 58 , 58, 58, 58, 58, 58, 58, 58, 58, 58, 55, 55, 55]; # leds per step
+EFFECT="Switching" # the "effects" to be used, "Swichting" will use some random effect, can also be "Rainbow", "Fire" or "Ice"
+#do not edit anything below
 CUSTOM_STEP_STARTS=[]
 ANIMATION_MILLIES=0.005
 ON=False
@@ -42,11 +42,9 @@ TIMEOUT_THREAD=None
 TIMEOUT_RUN=False
 TIMEOUT_TIME=50
 DARK=True
-COLOR=Color(0,0,255)
 WORKING=Lock()
 fdelay=0.001
 idelay=0.001
-EFFECT="Switching"
 
 def rainbowColor(pos):
     colors= [ Color(0, 255, 0), Color(127, 255, 0), Color(255, 255, 0), Color(255, 0, 0), Color(0,0,255), Color(43,46,95), Color(0, 139,255) ]
