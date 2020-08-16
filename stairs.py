@@ -31,7 +31,7 @@ LED_DMA        = 10      # DMA channel to use for generating signal (try 10)
 LED_BRIGHTNESS = 15 # Set to 0 for darkest and 255 for brightest
 LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
-CUSTOM_STEP_LENGTH=[60, 64, 84, 65, 58 , 58, 58, 58, 58, 58] #58] #58, 58, 58, 55, 55, 55];
+CUSTOM_STEP_LENGTH=[60, 64, 84, 65, 58 , 58, 58, 58, 58, 58, 58, 58, 58, 58, 55, 55, 55];
 #CUSTOM_STEP_LENGTH=[2, 4, 3, 5 , 1, 15]
 CUSTOM_STEP_STARTS=[]
 ANIMATION_MILLIES=0.005
@@ -160,11 +160,6 @@ def animation(strip, reverse):
         logging.info("color")
         setColor(strip, COLOR, None, reverse, None, True, False)
 
-
-	
-
-
-
 def rainbowSteps(strip, reverse=False):
     if not reverse:
         for i in range(1, len(CUSTOM_STEP_LENGTH)+1):
@@ -177,6 +172,7 @@ def rainbowSteps(strip, reverse=False):
 def timeout(reverse):
     global ON, WORKING, TIMEOUT_RUN, TIMEOUT_TIME
     tt=TIMEOUT_TIME
+    logging.info("timeout thread started, will trigger after: "+str(TIMEOUT_TIME))
     while TIMEOUT_RUN and tt>0:
         time.sleep(1)
         tt=tt-1
@@ -184,7 +180,7 @@ def timeout(reverse):
         return
 
     if tt==0:
-        logging.info("timeout after :"+TIMEOUT_TIME)
+        logging.info("timeout after :"+str(TIMEOUT_TIME))
         clean(not reverse)
     WORKING.release()
 
@@ -195,9 +191,6 @@ def clean(reverse):
     if ANIMATION_THREAD != None:
         ANIMATION_THREAD.join()
     setColor(strip, Color(0,0,0), None, reverse, None, True, False, 0.1)
-    TIMEOUT_RUN=False
-    if TIMEOUT_THREAD != None:
-        TIMEOUT_THREAD.join()
     ON=False
 
 def movement(strip, reverse):
@@ -213,6 +206,9 @@ def movement(strip, reverse):
     logging.info("movement: reverse: " + str(reverse)+" - on: "+str(ON)+" lightsoff: "+ str(lightsoff))
     if ON:
         clean(reverse)
+        TIMEOUT_RUN=False
+        if TIMEOUT_THREAD != None:
+            TIMEOUT_THREAD.join()
     else:
         ANIMATION_RUN=True
         ANIMATION_THREAD=Thread(target=animation, args=(strip, reverse,))
@@ -238,7 +234,7 @@ if __name__ == '__main__':
     # Intialize the library (must be called once before other functions).
     strip.begin()
 
-    logging.basicConfig(filename='/var/log/stairs.log', filemode='w', level=logging.INFO)
+    logging.basicConfig(filename='/var/log/stairs.log', filemode='w', level=logging.INFO, format='%(asctime)s: %(message)s')
     try:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(MOTION_PIN, GPIO.IN)
@@ -255,4 +251,7 @@ if __name__ == '__main__':
     except:
         GPIO.cleanup()
         clean(False)
+        TIMEOUT_RUN=False
+        if TIMEOUT_THREAD != None:
+            TIMEOUT_THREAD.join()
         logging.info(sys.exc_info()[0])
