@@ -29,10 +29,9 @@ LED_DMA        = 10      # DMA channel to use for generating signal (try 10)
 LED_BRIGHTNESS = DARK_BRIGHTNESS # Set to 0 for darkest and 255 for brightest, default brightness, will be overwritten by light or dark brightness
 LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
-COLOR=Color(0,0,255) # R G B values for solid color (here it is actually GRB)
-CUSTOM_STEP_LENGTH=[60, 64, 84, 65, 58 , 58, 58, 58, 58, 58, 58, 58, 58, 58, 55, 55, 55]; # leds per step
-EFFECT="Switching" # the "effects" to be used, "Swichting" will use some random effect, can also be "Rainbow", "Fire" or "Ice"
-#do not edit anything below
+#CUSTOM_STEP_LENGTH=[60, 64, 84, 65, 58 , 58, 58, 58, 58, 58, 58, 58, 58, 58, 55, 55, 55];
+CUSTOM_STEP_LENGTH=[63, 51, 50, 56, 56 , 56, 56, 57, 57, 56, 56, 56, 57, 62, 82, 62, 58 ];
+#CUSTOM_STEP_LENGTH=[2, 4, 3, 5 , 1, 15]
 CUSTOM_STEP_STARTS=[]
 ANIMATION_MILLIES=0.005
 ON=False
@@ -42,9 +41,11 @@ TIMEOUT_THREAD=None
 TIMEOUT_RUN=False
 TIMEOUT_TIME=50
 DARK=True
+COLOR=Color(0,0,255)
 WORKING=Lock()
 fdelay=0.001
 idelay=0.001
+EFFECT="Rainbow"
 
 def rainbowColor(pos):
     colors= [ Color(0, 255, 0), Color(127, 255, 0), Color(255, 255, 0), Color(255, 0, 0), Color(0,0,255), Color(43,46,95), Color(0, 139,255) ]
@@ -56,15 +57,15 @@ def setColor(strip, color, step=None, reverse=False, rangeColor=0, show=True, sh
         if reverse:
             for i in range(len(CUSTOM_STEP_LENGTH),0,-1):
                 setStep(strip, i, color, show, showPixel, ANIMATION_MILLIES, reverse, rangeColor);
-            time.sleep(pdelay)
+                time.sleep(0.5)
         else:
             for i in range(1, len(CUSTOM_STEP_LENGTH)+1):
                 setStep(strip, i, color, show, showPixel, ANIMATION_MILLIES, reverse, rangeColor);
-            time.sleep(pdelay)
+                time.sleep(0.5)
                 #setStep(strip, i, color, True, True, ANIMATION_MILLIES, reverse);
     else:
         setStep(strip, step, color, show, showPixel, ANIMATION_MILLIES, reverse, rangeColor);
-        time.sleep(pdelay)
+        time.sleep(0.5)
         #setStep(strip, step, color, True, True, ANIMATION_MILLIES, reverse, rangeColor);
 
 def setStep(strip, stepNo, color, show=False, showPixel=False, delay=1.0, reverse=False, rangeColor=0):
@@ -105,10 +106,10 @@ def setStep(strip, stepNo, color, show=False, showPixel=False, delay=1.0, revers
             if rb>0:
                 b=random.randrange(o_b-rb, o_b+rb)
         strip.setPixelColor(i, Color(r,g,b, 255))
-        if showPixel:
-            strip.show()
-            time.sleep(delay/10)
-    if not showPixel and show:
+        #if showPixel:
+        #    strip.show()
+            #time.sleep(delay/10)
+    if show:
         strip.show()
 
 
@@ -179,7 +180,7 @@ def timeout(reverse):
 
     if tt==0:
         logging.info("timeout after :"+str(TIMEOUT_TIME))
-        clean(not reverse)
+        clean(reverse)
     WORKING.release()
 
 
@@ -197,13 +198,13 @@ def movement(strip, reverse):
         return;
 
     lightsoff=GPIO.input(LIGHT_PIN)
-    if lightsoff==1:
-        strip.setBrightness(DARK_BRIGHTNESS)
-    else:
-        strip.setBrightness(LIGHT_BRIGHTNESS)
+    #if lightsoff==1:
+    #    strip.setBrightness(DARK_BRIGHTNESS)
+    #else:
+    #    strip.setBrightness(LIGHT_BRIGHTNESS)
     logging.info("movement: reverse: " + str(reverse)+" - on: "+str(ON)+" lightsoff: "+ str(lightsoff))
     if ON:
-        clean(reverse)
+        clean(not reverse)
         TIMEOUT_RUN=False
         if TIMEOUT_THREAD != None:
             TIMEOUT_THREAD.join()
@@ -238,8 +239,8 @@ if __name__ == '__main__':
         GPIO.setup(MOTION_PIN, GPIO.IN)
         GPIO.setup(MOTION2_PIN, GPIO.IN)
         GPIO.setup(LIGHT_PIN, GPIO.IN)
-        GPIO.add_event_detect(MOTION_PIN , GPIO.RISING, callback=lambda x : movement(strip, False), bouncetime=100)
-        GPIO.add_event_detect(MOTION2_PIN , GPIO.RISING, callback=lambda x : movement(strip, True), bouncetime=100)
+        GPIO.add_event_detect(MOTION_PIN , GPIO.RISING, callback=lambda x : movement(strip, False), bouncetime=5000)
+        GPIO.add_event_detect(MOTION2_PIN , GPIO.RISING, callback=lambda x : movement(strip, True), bouncetime=5000)
         CUSTOM_STEP_STARTS.append(0)
         for i in CUSTOM_STEP_LENGTH:
             CUSTOM_STEP_STARTS.append(CUSTOM_STEP_STARTS[-1]+i)
