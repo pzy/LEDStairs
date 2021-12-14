@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # rpi_ws281x library strandtest example
 # Author: Tony DiCola (tony@tonydicola.com)
 #
@@ -78,6 +78,9 @@ def setStep(strip, stepNo, color, show=False, showPixel=False, delay=1.0, revers
     r=o_r
     g=o_g
     b=o_b
+    rr=0
+    rg=0
+    rb=0
     if rangeColor>0:
         rr=(rangeColor >> 16) & 0xFF
         if rr>o_r:
@@ -157,15 +160,15 @@ def animation(strip, reverse):
             iceSteps(strip, reverse)
     else:
         logging.info("color")
-        setColor(strip, COLOR, None, reverse, None, True, False)
+        setColor(strip, COLOR, None, reverse, Color(0,0,0), True, False)
 
 def rainbowSteps(strip, reverse=False):
     if not reverse:
         for i in range(1, len(CUSTOM_STEP_LENGTH)+1):
-            setColor(strip, rainbowColor(i), i, reverse, None, True, False, 0.01) 
+            setColor(strip, rainbowColor(i), i, reverse, Color(0,0,0), True, False, 0.01) 
     else:
         for i in range(len(CUSTOM_STEP_LENGTH),0,-1):
-            setColor(strip, rainbowColor(len(CUSTOM_STEP_LENGTH)-i), i, reverse, None, True, False, 0.01)
+            setColor(strip, rainbowColor(len(CUSTOM_STEP_LENGTH)-i), i, reverse, Color(0,0,0), True, False, 0.01)
 
 
 def timeout(reverse):
@@ -189,7 +192,7 @@ def clean(reverse):
     ANIMATION_RUN=False
     if ANIMATION_THREAD != None:
         ANIMATION_THREAD.join()
-    setColor(strip, Color(0,0,0), None, reverse, None, True, False, 0.1)
+    setColor(strip, Color(0,0,0), None, reverse, Color(0,0,0), True, False, 0.1)
     ON=False
 
 def movement(strip, reverse):
@@ -239,14 +242,18 @@ if __name__ == '__main__':
         GPIO.setup(MOTION_PIN, GPIO.IN)
         GPIO.setup(MOTION2_PIN, GPIO.IN)
         GPIO.setup(LIGHT_PIN, GPIO.IN)
-        GPIO.add_event_detect(MOTION_PIN , GPIO.RISING, callback=lambda x : movement(strip, False), bouncetime=5000)
-        GPIO.add_event_detect(MOTION2_PIN , GPIO.RISING, callback=lambda x : movement(strip, True), bouncetime=5000)
         CUSTOM_STEP_STARTS.append(0)
         for i in CUSTOM_STEP_LENGTH:
             CUSTOM_STEP_STARTS.append(CUSTOM_STEP_STARTS[-1]+i)
-        logging.info("startup")
-        while True:
-            time.sleep(100)
+        if len(sys.argv)>2:
+            setColor(strip, COLOR, int(sys.argv[1]), False, Color(0,0,0))
+            clean(False)
+        else:
+            GPIO.add_event_detect(MOTION_PIN , GPIO.RISING, callback=lambda x : movement(strip, False), bouncetime=5000)
+            GPIO.add_event_detect(MOTION2_PIN , GPIO.RISING, callback=lambda x : movement(strip, True), bouncetime=5000)
+            logging.info("startup")
+            while True:
+                time.sleep(100)
     except:
         GPIO.cleanup()
         clean(False)
