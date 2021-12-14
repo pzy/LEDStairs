@@ -246,7 +246,8 @@ if __name__ == '__main__':
         for i in CUSTOM_STEP_LENGTH:
             CUSTOM_STEP_STARTS.append(CUSTOM_STEP_STARTS[-1]+i)
         if len(sys.argv)>2:
-            setColor(strip, COLOR, int(sys.argv[1]), False, Color(0,0,0))
+            setColor(strip, COLOR, int(sys.argv[2]), False, Color(0,0,0))
+            time.sleep(int(sys.argv[1]))
             clean(False)
         else:
             GPIO.add_event_detect(MOTION_PIN , GPIO.RISING, callback=lambda x : movement(strip, False), bouncetime=5000)
